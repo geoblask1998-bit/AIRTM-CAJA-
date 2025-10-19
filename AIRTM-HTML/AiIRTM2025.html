@@ -1,0 +1,1444 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💰 Caja Diaria Pro | Control Financiero</title>
+  <!-- Google API Client Library -->
+  <script src="https://apis.google.com/js/api.js" defer></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" defer></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #6366f1; --secondary: #10b981; --danger: #ef4444; --warning: #f59e0b;
+      --dark: #0f172a; --darker: #020617; --card: #1e293b; --text: #f8fafc; --muted: #94a3b8;
+      --gradient: linear-gradient(135deg, #6366f1, #8b5cf6); --gradient2: linear-gradient(135deg, #10b981, #06b6d4);
+      --shadow: 0 10px 25px -5px rgba(0,0,0,0.5); --radius: 16px; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: var(--darker); 
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+      color: var(--text); 
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 20%);
+      min-height: 100vh;
+    }
+    
+    .app { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    
+    /* Header Pepa */
+    .header { 
+      background: var(--card); 
+      border-radius: var(--radius); 
+      padding: 25px 30px; 
+      margin-bottom: 25px; 
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.05);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+      background: linear-gradient(135deg, #1e293b, #334155);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 200px; height: 200px;
+      background: var(--gradient);
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.1;
+    }
+    .logo { display: flex; align-items: center; gap: 15px; }
+    .logo-icon { 
+      background: var(--gradient); 
+      width: 50px; height: 50px; 
+      border-radius: 12px; 
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+    .logo-text h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .logo-text .tagline { font-size: 14px; color: var(--muted); margin-top: 4px; }
+    
+    /* Controls */
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { 
+      padding: 12px 20px; border: none; border-radius: 12px; 
+      font-weight: 600; cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+    .btn-primary { background: var(--gradient); color: white; }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .btn-success { background: var(--gradient2); color: white; }
+    .btn-cloud { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+    
+    /* Grid Layout */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px; }
+    
+    /* Cards Pepas */
+    .card { 
+      background: var(--card); 
+      border-radius: var(--radius); 
+      padding: 25px; 
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 4px;
+      background: var(--gradient);
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px -10px rgba(0,0,0,0.6); }
+    
+    /* KPI Cards */
+    .kpi-card { text-align: center; padding: 25px 20px; }
+    .kpi-icon { 
+      width: 60px; height: 60px; 
+      border-radius: 16px; 
+      margin: 0 auto 15px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      background: rgba(255,255,255,0.05);
+    }
+    .kpi-card.primary .kpi-icon { background: rgba(99, 102, 241, 0.2); color: var(--primary); }
+    .kpi-card.success .kpi-icon { background: rgba(16, 185, 129, 0.2); color: var(--secondary); }
+    .kpi-card.danger .kpi-icon { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .kpi-card.warning .kpi-icon { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .kpi-title { font-size: 14px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-value { font-size: 28px; font-weight: 800; }
+    .kpi-card.primary .kpi-value { color: var(--primary); }
+    .kpi-card.success .kpi-value { color: var(--secondary); }
+    .kpi-card.danger .kpi-value { color: var(--danger); }
+    .kpi-card.warning .kpi-value { color: var(--warning); }
+    
+    /* Full Width Cards */
+    .card-full { grid-column: 1 / -1; }
+    
+    /* Card Headers */
+    .card-header { 
+      display: flex; justify-content: space-between; align-items: center; 
+      margin-bottom: 20px; padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .card-title { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .card-title i { color: var(--primary); }
+    
+    /* Tables Modernas */
+    .table-container { 
+      overflow-x: auto; 
+      margin-top: 15px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.2);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th { 
+      background: rgba(255,255,255,0.05); 
+      padding: 15px 12px; 
+      text-align: left; 
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td { 
+      padding: 15px 12px; 
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 14px;
+    }
+    tbody tr { transition: var(--transition); }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    .text-right { text-align: right; }
+    .text-success { color: var(--secondary); }
+    .text-danger { color: var(--danger); }
+    .text-warning { color: var(--warning); }
+    
+    /* Inputs Modernos */
+    input[type="text"], input[type="number"], input[type="date"], select {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      padding: 12px 15px;
+      border-radius: 10px;
+      width: 100%;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Summary */
+    .summary { 
+      display: flex; gap: 25px; 
+      margin-top: 20px; 
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-wrap: wrap;
+    }
+    .summary-item { font-size: 14px; }
+    .summary-label { color: var(--muted); margin-right: 8px; }
+    
+    /* Config Section */
+    .config-section { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 15px; 
+      margin-bottom: 20px;
+    }
+    .config-group label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 14px; }
+    
+    /* Search & Filters */
+    .search-container { 
+      display: flex; gap: 12px; 
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    /* Actions Cell */
+    .actions-cell { display: flex; gap: 8px; justify-content: flex-end; }
+    .actions-cell button { 
+      padding: 8px; 
+      border-radius: 8px; 
+      border: none; 
+      cursor: pointer; 
+      transition: var(--transition);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+    }
+    .actions-cell button:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
+    .actions-cell .btn-save:hover { background: rgba(16, 185, 129, 0.2); color: var(--secondary); }
+    .actions-cell .btn-delete:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    
+    /* Auto Save Indicator */
+    .auto-save-indicator {
+      position: fixed;
+      top: 20px; right: 20px;
+      background: var(--gradient2);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      display: flex; align-items: center; gap: 8px;
+      transform: translateX(150%);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .auto-save-indicator.show { transform: translateX(0); }
+    
+    /* Modal Pepa */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(10px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .close-btn {
+      position: absolute;
+      top: 20px; right: 25px;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: var(--transition);
+    }
+    .close-btn:hover { color: var(--text); transform: scale(1.1); }
+    
+    /* Spinner */
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Drive Controls */
+    .drive-controls { display: flex; flex-direction: column; gap: 12px; margin: 25px 0; }
+    
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 25px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header { flex-direction: column; gap: 20px; text-align: center; }
+      .controls { justify-content: center; }
+      .grid { grid-template-columns: 1fr; }
+      .config-section { grid-template-columns: 1fr; }
+      .search-container { flex-direction: column; }
+    }
+
+    /* NUEVO: Panel de Iconos Simplificado */
+    .indicators-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+    
+    .indicator-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 25px 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .indicator-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px -10px rgba(0,0,0,0.6);
+    }
+    
+    .indicator-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 28px;
+      position: relative;
+    }
+    
+    .edit-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.9);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #7e8c9a;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .edit-icon:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .capital-icon {
+      background: linear-gradient(135deg, #3498db, #2c80b9);
+      color: white;
+    }
+    
+    .loss-icon {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+    }
+    
+    .updated-icon {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+    }
+    
+    .commission-icon {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      color: white;
+    }
+    
+    .balance-icon {
+      background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      color: white;
+    }
+    
+    .indicator-title {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    
+    .indicator-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .indicator-description {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header Pepa -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="logo-text">
+          <h1>Caja Diaria Pro</h1>
+          <div class="tagline">Control Financiero Inteligente 💰</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-secondary" id="btnExport">
+          <i class="fas fa-file-export"></i> Exportar JSON
+        </button>
+        <button class="btn btn-secondary" id="btnImport">
+          <i class="fas fa-file-import"></i> Importar JSON
+        </button>
+        <button class="btn btn-cloud" id="btnSaveCloud">
+          <i class="fas fa-cloud-upload-alt"></i> Guardar en Drive
+        </button>
+      </div>
+    </header>
+
+    <div id="autoSaveIndicator" class="auto-save-indicator">
+      <i class="fas fa-check-circle"></i> Datos Guardados
+    </div>
+
+    <!-- NUEVO: Panel de Iconos Simplificado -->
+    <div class="indicators-grid">
+      <div class="indicator-card">
+        <div class="edit-icon" onclick="editValue('capitalInicial')">
+          <i class="fas fa-pencil-alt"></i>
+        </div>
+        <div class="indicator-icon capital-icon">
+          <i class="fas fa-piggy-bank"></i>
+        </div>
+        <div class="indicator-title">Capital Inicial</div>
+        <div class="indicator-value" id="capitalInicial">$50.00</div>
+        <div class="indicator-description">Fondos iniciales disponibles</div>
+      </div>
+      
+      <div class="indicator-card">
+        <div class="edit-icon" onclick="editValue('perdidaTotal')">
+          <i class="fas fa-pencil-alt"></i>
+        </div>
+        <div class="indicator-icon loss-icon">
+          <i class="fas fa-arrow-trend-down"></i>
+        </div>
+        <div class="indicator-title">Pérdida Total</div>
+        <div class="indicator-value" id="perdidaTotal">-$800.00</div>
+        <div class="indicator-description">Pérdidas acumuladas</div>
+      </div>
+      
+      <div class="indicator-card">
+        <div class="indicator-icon updated-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="indicator-title">Capital Actualizado</div>
+        <div class="indicator-value" id="capitalActualizado">$50.00</div>
+        <div class="indicator-description">Capital + Ganancias</div>
+      </div>
+      
+      <div class="indicator-card">
+        <div class="indicator-icon commission-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <div class="indicator-title">Comisiones del Día</div>
+        <div class="indicator-value" id="comisionesDia">$0.00</div>
+        <div class="indicator-description">No forma parte del capital</div>
+      </div>
+      
+      <div class="indicator-card">
+        <div class="indicator-icon balance-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="indicator-title">Balance Generado</div>
+        <div class="indicator-value" id="balanceDia">$0.00</div>
+        <div class="indicator-description">Rendimiento del día</div>
+      </div>
+    </div>
+
+    <!-- Registro Diario -->
+    <div class="card card-full">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-money-bill-wave"></i> Registro Diario
+        </div>
+        <button class="btn btn-danger" id="btnClear">
+          <i class="fas fa-trash"></i> Limpiar Tabla
+        </button>
+      </div>
+      
+      <div class="table-container">
+        <table id="tabla">
+          <thead>
+            <tr>
+              <th style="width: 120px">Fecha</th>
+              <th>Descripción</th>
+              <th>Tipo</th>
+              <th class="text-right">Enviar</th>
+              <th class="text-right">Recibir</th>
+              <th class="text-right">FEE</th>
+              <th class="text-right">Ganancia</th>
+              <th style="width: 100px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      
+      <div class="summary">
+        <div class="summary-item">
+          <span class="summary-label">Total Enviado:</span>
+          <span id="totalEnviado" class="text-danger">$0.00</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Recibido:</span>
+          <span id="totalRecibido" class="text-success">$0.00</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Fees:</span>
+          <span id="totalFees" class="text-warning">$0.00</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Ganancia Día:</span>
+          <span id="totalDia">$0.00</span>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-primary" id="btnGuardar">
+          <i class="fas fa-save"></i> Guardar Cierre Diario
+        </button>
+      </div>
+    </div>
+
+    <!-- Fees de Plataformas -->
+    <div class="card card-full">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-receipt"></i> Fees de Plataformas
+        </div>
+        <button class="btn btn-danger" id="btnClearFees">
+          <i class="fas fa-trash"></i> Limpiar Fees
+        </button>
+      </div>
+      
+      <div class="table-container">
+        <table id="tablaFees">
+          <thead>
+            <tr>
+              <th style="width: 120px">Fecha</th>
+              <th>Plataforma</th>
+              <th class="text-right">Monto Fee</th>
+              <th style="width: 100px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyFees"></tbody>
+        </table>
+      </div>
+      
+      <div class="summary">
+        <div class="summary-item">
+          <span class="summary-label">Total Fees Plataformas:</span>
+          <span id="totalFeesPlataformas" class="text-warning">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histórico Completo -->
+    <div class="card card-full">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-history"></i> Histórico Completo
+        </div>
+        <div class="search-container">
+          <input type="date" id="filterDia" placeholder="Día específico">
+          <select id="filterMes">
+            <option value="">Todos los meses</option>
+            <option value="01">Enero</option><option value="02">Febrero</option>
+            <option value="03">Marzo</option><option value="04">Abril</option>
+            <option value="05">Mayo</option><option value="06">Junio</option>
+            <option value="07">Julio</option><option value="08">Agosto</option>
+            <option value="09">Septiembre</option><option value="10">Octubre</option>
+            <option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+          <input type="number" id="filterAnio" placeholder="Año" min="2000" max="2100">
+          <button class="btn btn-secondary" id="btnClearFilters">
+            <i class="fas fa-times"></i> Limpiar
+          </button>
+        </div>
+      </div>
+      
+      <div class="table-container">
+        <table id="tablaCompleto">
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Descripción</th><th>Tipo</th>
+              <th class="text-right">Enviar</th><th class="text-right">Recibir</th>
+              <th class="text-right">FEE</th><th class="text-right">Ganancia</th>
+              <th class="text-right">Fee Plataforma</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyCompleto"></tbody>
+        </table>
+      </div>
+      
+      <div class="summary">
+        <div class="summary-item">
+          <span class="summary-label">Total Ganancia Histórica:</span>
+          <span id="totalGananciaHistorica" class="text-success">$0.00</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Fees Históricas:</span>
+          <span id="totalFeesHistoricas" class="text-warning">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div>🚀 <strong>Caja Diaria Pro v3.0</strong> - Control Financiero Inteligente</div>
+      <div style="margin-top: 8px; font-size: 12px; opacity: 0.7;">
+        Desarrollado con ❤️ | Google Drive Integrado | Diseño Pepa Moderno
+      </div>
+    </footer>
+
+    <!-- Modal Google Drive -->
+    <div id="cloudModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2 style="text-align: center; margin-bottom: 10px; color: var(--primary);">
+          <i class="fas fa-cloud-upload-alt"></i> Google Drive
+        </h2>
+        <p style="text-align: center; color: var(--muted); margin-bottom: 25px;">
+          Sincroniza tus datos con la nube de forma segura
+        </p>
+        
+        <div id="modalMessage" style="text-align: center; margin: 20px 0;">
+          <div class="spinner"></div>
+          <div style="margin-top: 15px; color: var(--muted);">Inicializando Google Drive...</div>
+        </div>
+
+        <div id="driveControls" class="drive-controls hidden">
+          <button id="btnAuthorizeDrive" class="btn btn-cloud hidden">
+            <i class="fas fa-sign-in-alt"></i> Conectar con Google Drive
+          </button>
+          
+          <button id="btnUploadDrive" class="btn btn-success hidden">
+            <i class="fas fa-cloud-upload-alt"></i> Subir a Drive
+          </button>
+          
+          <button id="btnDownloadDrive" class="btn btn-primary hidden">
+            <i class="fas fa-cloud-download-alt"></i> Descargar desde Drive
+          </button>
+        </div>
+
+        <div style="text-align: center; margin-top: 25px;">
+          <button class="btn btn-secondary" onclick="closeModal()">
+            <i class="fas fa-times"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <input id="fileInput" type="file" accept="application/json" class="hidden" />
+  </div>
+
+  <script>
+    // --- VARIABLES GLOBALES GOOGLE DRIVE ---
+    const CLIENT_ID = '165890661504-v2uvkpc12s7g3u1bf6gd358gieb031au.apps.googleusercontent.com';
+    const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+    // Estados de inicialización de Google
+    let gapiInitialized = false;
+    let gisReady = false;
+    let googleServicesReady = false;
+    let tokenClient = null;
+    let driveUploadInProgress = false;
+    let driveTimeout = null;
+    let driveFileId = null;
+    const DRIVE_FILE_NAME = 'caja_diaria_control.json';
+
+    // --- ESTADO DE LA APLICACIÓN ---
+    const state = {
+      capitalInicial: 50,
+      perdidaTotal: 800,
+      registros: [],
+      feesPlataformas: [],
+      historicoCompleto: []
+    };
+
+    // --- UTILIDADES ---
+    const $ = id => document.getElementById(id);
+    const fmt = v => (Number(v) || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
+    const sanitize = str => String(str || '').replace(/[<>]/g, '');
+
+    // --- CÁLCULOS ---
+    const calcRowGanancia = r => +( (Number(r.recibir) || 0) - (Number(r.enviar) || 0) - (Number(r.fee) || 0) ).toFixed(2);
+
+    // --- RENDERIZADO (VISTAS) ---
+
+    function renderKPIs() {
+      // Renderizar indicadores
+      $('capitalInicial').textContent = fmt(state.capitalInicial);
+      $('perdidaTotal').textContent = fmt(-state.perdidaTotal);
+      
+      // Calcular ganancia total histórica y fees
+      const ganTotal = state.historicoCompleto.reduce((s, r) => s + Number(r.ganancia || 0), 0);
+      const totalFeesPlataformasHist = state.historicoCompleto.reduce((s, r) => s + Number(r.feePlataforma || 0), 0);
+      
+      // NUEVO CÁLCULO CORREGIDO para Capital Actualizado
+      let capitalActual;
+      
+      if (state.perdidaTotal > 0) {
+        // Si todavía hay pérdida pendiente, el capital sigue siendo el inicial
+        capitalActual = state.capitalInicial;
+      } else {
+        // Si no hay pérdida pendiente, sumamos las ganancias al capital inicial
+        capitalActual = state.capitalInicial + ganTotal - totalFeesPlataformasHist;
+      }
+      
+      $('capitalActualizado').textContent = fmt(capitalActual);
+      
+      // Calcular comisiones del día
+      const comisionesDia = state.feesPlataformas.reduce((s, f) => s + Number(f.monto || 0), 0);
+      $('comisionesDia').textContent = fmt(-comisionesDia);
+      
+      // Calcular balance del día
+      const totalEnviado = state.registros.reduce((s, r) => s + Number(r.enviar || 0), 0);
+      const totalRecibido = state.registros.reduce((s, r) => s + Number(r.recibir || 0), 0);
+      const totalFees = state.registros.reduce((s, r) => s + Number(r.fee || 0), 0);
+      const balanceDia = totalRecibido - totalEnviado - totalFees - comisionesDia;
+      $('balanceDia').textContent = fmt(balanceDia);
+    }
+
+    function renderTabla() {
+      const tbody = $('tbody');
+      tbody.innerHTML = '';
+      
+      // Renderizar filas existentes
+      state.registros.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        const isSaved = r.saved;
+        const disabledAttr = isSaved ? 'disabled' : '';
+        tr.innerHTML = `
+          <td><input type="date" value="${r.fecha || ''}" onchange="onChange(${idx}, 'fecha', this.value)" ${disabledAttr}></td>
+          <td><input type="text" value="${sanitize(r.descripcion || '')}" onchange="onChange(${idx}, 'descripcion', this.value)" ${disabledAttr}></td>
+          <td>
+            <select onchange="onChange(${idx}, 'tipo', this.value)" ${disabledAttr}>
+              <option value="enviar" ${r.tipo === 'enviar' ? 'selected' : ''}>Enviar</option>
+              <option value="recibir" ${r.tipo === 'recibir' ? 'selected' : ''}>Recibir</option>
+            </select>
+          </td>
+          <td class="text-right"><input type="number" step="0.01" value="${r.enviar || ''}" onchange="onChange(${idx}, 'enviar', this.value)" ${disabledAttr}></td>
+          <td class="text-right"><input type="number" step="0.01" value="${r.recibir || ''}" onchange="onChange(${idx}, 'recibir', this.value)" ${disabledAttr}></td>
+          <td class="text-right"><input type="number" step="0.01" value="${r.fee || ''}" onchange="onChange(${idx}, 'fee', this.value)" ${disabledAttr}></td>
+          <td class="text-right">${fmt(r.ganancia || 0)}</td>
+          <td>
+            <div class="actions-cell">
+            ${isSaved
+              ? '<span style="color: var(--secondary); font-size: 18px;"><i class="fas fa-check"></i></span>'
+              : `<button class="btn-save" onclick="saveRow(${idx})" title="Guardar Fila"><i class="fas fa-save"></i></button>`
+            }
+            <button class="btn-delete" onclick="deleteRow(${idx})" title="Eliminar Fila"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Añadir siempre una fila nueva al final
+      const newTr = document.createElement('tr');
+      const newIdx = state.registros.length;
+      newTr.innerHTML = `
+          <td><input type="date" onchange="onChange(${newIdx}, 'fecha', this.value)"></td>
+          <td><input type="text" placeholder="Nueva operación..." onchange="onChange(${newIdx}, 'descripcion', this.value)"></td>
+          <td>
+            <select onchange="onChange(${newIdx}, 'tipo', this.value)">
+              <option value="enviar" selected>Enviar</option>
+              <option value="recibir">Recibir</option>
+            </select>
+          </td>
+          <td class="text-right"><input type="number" step="0.01" placeholder="0.00" onchange="onChange(${newIdx}, 'enviar', this.value)"></td>
+          <td class="text-right"><input type="number" step="0.01" placeholder="0.00" onchange="onChange(${newIdx}, 'recibir', this.value)"></td>
+          <td class="text-right"><input type="number" step="0.01" placeholder="0.00" onchange="onChange(${newIdx}, 'fee', this.value)"></td>
+          <td class="text-right">${fmt(0)}</td>
+          <td></td>
+      `;
+      tbody.appendChild(newTr);
+      renderTotales();
+    }
+    
+    function renderTablaFees() {
+        const tbody = $('tbodyFees');
+        tbody.innerHTML = '';
+        state.feesPlataformas.forEach((f, idx) => {
+            const tr = document.createElement('tr');
+            const isSaved = f.saved;
+            const disabledAttr = isSaved ? 'disabled' : '';
+            tr.innerHTML = `
+                <td><input type="date" value="${f.fecha || ''}" onchange="onFeeChange(${idx}, 'fecha', this.value)" ${disabledAttr}></td>
+                <td><input type="text" value="${sanitize(f.plataforma || '')}" onchange="onFeeChange(${idx}, 'plataforma', this.value)" ${disabledAttr}></td>
+                <td class="text-right"><input type="number" step="0.01" value="${f.monto || ''}" onchange="onFeeChange(${idx}, 'monto', this.value)" ${disabledAttr}></td>
+                <td>
+                  <div class="actions-cell">
+                  ${isSaved
+                    ? '<span style="color: var(--secondary); font-size: 18px;"><i class="fas fa-check"></i></span>'
+                    : `<button class="btn-save" onclick="saveFeeRow(${idx})" title="Guardar Fee"><i class="fas fa-save"></i></button>`
+                  }
+                  <button class="btn-delete" onclick="deleteFeeRow(${idx})" title="Eliminar Fee"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Fila nueva para fees
+        const newTr = document.createElement('tr');
+        const newIdx = state.feesPlataformas.length;
+        newTr.innerHTML = `
+            <td><input type="date" onchange="onFeeChange(${newIdx}, 'fecha', this.value)"></td>
+            <td><input type="text" placeholder="Plataforma..." onchange="onFeeChange(${newIdx}, 'plataforma', this.value)"></td>
+            <td class="text-right"><input type="number" step="0.01" placeholder="0.00" onchange="onFeeChange(${newIdx}, 'monto', this.value)"></td>
+            <td></td>
+        `;
+        tbody.appendChild(newTr);
+        renderTotales();
+    }
+    
+    function renderTablaCompleto() {
+      const tbody = $('tbodyCompleto');
+      tbody.innerHTML = '';
+      const filtered = filterHistorico();
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.fecha || ''}</td><td>${sanitize(r.descripcion || '')}</td><td>${r.tipo || ''}</td>
+          <td class="text-right">${fmt(r.enviar)}</td><td class="text-right">${fmt(r.recibir)}</td><td class="text-right">${fmt(r.fee)}</td>
+          <td class="text-right ${Number(r.ganancia) < 0 ? 'text-danger' : 'text-success'}">${fmt(r.ganancia)}</td>
+          <td class="text-right">${fmt(r.feePlataforma)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      const totalGanancia = filtered.reduce((s, r) => s + Number(r.ganancia || 0), 0);
+      const totalFees = filtered.reduce((s, r) => s + Number(r.feePlataforma || 0), 0);
+      $('totalGananciaHistorica').textContent = fmt(totalGanancia);
+      $('totalFeesHistoricas').textContent = fmt(totalFees);
+    }
+
+    function renderTotales() {
+      const totalEnviado = state.registros.reduce((s, r) => s + Number(r.enviar || 0), 0);
+      const totalRecibido = state.registros.reduce((s, r) => s + Number(r.recibir || 0), 0);
+      const totalFees = state.registros.reduce((s, r) => s + Number(r.fee || 0), 0);
+      const totalFeesPlataformas = state.feesPlataformas.reduce((s, f) => s + Number(f.monto || 0), 0);
+      const gananciaDia = totalRecibido - totalEnviado - totalFees - totalFeesPlataformas;
+
+      $('totalEnviado').textContent = fmt(totalEnviado);
+      $('totalRecibido').textContent = fmt(totalRecibido);
+      $('totalFees').textContent = fmt(totalFees);
+      $('totalFeesPlataformas').textContent = fmt(totalFeesPlataformas);
+      $('totalDia').textContent = fmt(gananciaDia);
+      $('totalDia').className = gananciaDia < 0 ? 'text-danger' : 'text-success';
+      
+      // Actualizar KPIs automáticamente cuando cambian los totales
+      renderKPIs();
+    }
+
+    // --- MANEJO DE ESTADO Y EVENTOS ---
+    
+    function onChange(idx, key, value) {
+        if (idx >= state.registros.length) {
+            state.registros.push({
+                id: Date.now() + Math.random(),
+                fecha: new Date().toISOString().split('T')[0],
+                tipo: 'enviar',
+                saved: false
+            });
+            renderTabla();
+            const newRow = $('tbody').rows[idx];
+            const inputs = newRow.querySelectorAll('input, select');
+            const keyMap = { fecha: 0, descripcion: 1, tipo: 2, enviar: 3, recibir: 4, fee: 5 };
+            if (keyMap[key] !== undefined) inputs[keyMap[key]].focus();
+        }
+
+        const registro = state.registros[idx];
+        registro[key] = sanitize(value);
+        registro.ganancia = calcRowGanancia(registro);
+
+        const gananciaCell = $(`tbody`).rows[idx].cells[6];
+        if (gananciaCell) gananciaCell.textContent = fmt(registro.ganancia);
+
+        renderTotales();
+        saveLocal();
+        showAutoSaveIndicator();
+    }
+    
+    function onFeeChange(idx, key, value) {
+        if (idx >= state.feesPlataformas.length) {
+            state.feesPlataformas.push({
+                id: Date.now() + Math.random(),
+                fecha: new Date().toISOString().split('T')[0],
+                saved: false
+            });
+            renderTablaFees();
+            const newRow = $('tbodyFees').rows[idx];
+            const inputs = newRow.querySelectorAll('input, select');
+            const keyMap = { fecha: 0, plataforma: 1, monto: 2 };
+            if (keyMap[key] !== undefined) inputs[keyMap[key]].focus();
+        }
+
+        const feeRecord = state.feesPlataformas[idx];
+        feeRecord[key] = sanitize(value);
+        renderTotales();
+        saveLocal();
+        showAutoSaveIndicator();
+    }
+    
+    function saveRow(idx) {
+        if (state.registros[idx]) {
+            state.registros[idx].saved = true;
+            renderTabla();
+            saveLocal();
+        }
+    }
+
+    function saveFeeRow(idx) {
+        if (state.feesPlataformas[idx]) {
+            state.feesPlataformas[idx].saved = true;
+            renderTablaFees();
+            saveLocal();
+        }
+    }
+
+    function deleteRow(idx) {
+        if (confirm('¿Seguro que quieres borrar esta fila?')) {
+            state.registros.splice(idx, 1);
+            renderTabla();
+            saveLocal();
+        }
+    }
+
+    function deleteFeeRow(idx) {
+        if (confirm('¿Seguro que quieres borrar este fee?')) {
+            state.feesPlataformas.splice(idx, 1);
+            renderTablaFees();
+            saveLocal();
+        }
+    }
+
+    // NUEVO: Función para editar valores desde los iconos
+    function editValue(type) {
+        let currentValue, label;
+        
+        if (type === 'capitalInicial') {
+            currentValue = state.capitalInicial;
+            label = 'Capital Inicial';
+        } else if (type === 'perdidaTotal') {
+            currentValue = state.perdidaTotal;
+            label = 'Pérdida Total';
+        }
+        
+        let newValue = prompt(`Editar ${label}:`, currentValue);
+        
+        if (newValue !== null) {
+            // Validar que sea un valor numérico
+            if (!isNaN(parseFloat(newValue)) && isFinite(newValue)) {
+                if (type === 'capitalInicial') {
+                    state.capitalInicial = parseFloat(newValue);
+                } else if (type === 'perdidaTotal') {
+                    state.perdidaTotal = parseFloat(newValue);
+                }
+                
+                saveLocal();
+                renderKPIs();
+                showAutoSaveIndicator();
+            } else {
+                alert('Por favor, ingrese un valor numérico válido.');
+            }
+        }
+    }
+
+    function guardarCierreDiario() {
+        if (!confirm('¿Estás seguro de que quieres guardar el cierre del día?')) {
+            return;
+        }
+        
+        const registrosValidos = state.registros.filter(r => r.saved && (r.descripcion || r.enviar || r.recibir));
+        const feesValidos = state.feesPlataformas.filter(f => f.saved && (f.plataforma || f.monto));
+
+        // Calcular ganancia del día
+        const totalEnviado = registrosValidos.reduce((s, r) => s + Number(r.enviar || 0), 0);
+        const totalRecibido = registrosValidos.reduce((s, r) => s + Number(r.recibir || 0), 0);
+        const totalFees = registrosValidos.reduce((s, r) => s + Number(r.fee || 0), 0);
+        const totalFeesPlataformas = feesValidos.reduce((s, f) => s + Number(f.monto || 0), 0);
+        const gananciaDia = totalRecibido - totalEnviado - totalFees - totalFeesPlataformas;
+
+        // NUEVO: Actualizar Pérdida Total si hay ganancia
+        if (gananciaDia > 0 && state.perdidaTotal > 0) {
+            state.perdidaTotal = Math.max(0, state.perdidaTotal - gananciaDia);
+        }
+
+        // Guardar en histórico
+        registrosValidos.forEach(r => state.historicoCompleto.push({ ...r, feePlataforma: 0 }));
+        feesValidos.forEach(f => {
+            state.historicoCompleto.push({
+                fecha: f.fecha,
+                descripcion: `Fee Plataforma: ${f.plataforma}`,
+                tipo: 'fee_plataforma',
+                ganancia: -Number(f.monto),
+                feePlataforma: Number(f.monto)
+            });
+        });
+
+        state.historicoCompleto.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+        state.registros = [];
+        state.feesPlataformas = [];
+        
+        saveLocal();
+        render();
+        showAutoSaveIndicator();
+    }
+
+    // --- PERSISTENCIA Y DATOS ---
+    
+    function saveLocal() {
+      try { localStorage.setItem('cajaDiariaState', JSON.stringify(state)); } catch(e) { console.error("Error guardando en localStorage:", e); }
+    }
+
+    function loadLocal() {
+      try {
+        const savedState = localStorage.getItem('cajaDiariaState');
+        if (savedState) {
+          const parsedState = JSON.parse(savedState);
+          parsedState.registros.forEach(r => { if (r.saved === undefined) r.saved = true; });
+          parsedState.feesPlataformas.forEach(f => { if (f.saved === undefined) f.saved = true; });
+          if (parsedState.capitalInicial === undefined) parsedState.capitalInicial = 50;
+          if (parsedState.perdidaTotal === undefined) parsedState.perdidaTotal = 800;
+          Object.assign(state, parsedState);
+        }
+      } catch(e) { console.error("Error cargando desde localStorage:", e); }
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", `caja_diaria_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    function importJSON() { $('fileInput').click(); }
+    
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedState = JSON.parse(e.target.result);
+          if (confirm('Esto reemplazará todos los datos actuales. ¿Continuar?')) {
+            Object.assign(state, importedState);
+            saveLocal();
+            render();
+          }
+        } catch(err) { alert('Error: El archivo no es un JSON válido.'); }
+      };
+      reader.readAsText(file);
+    }
+
+    // --- GOOGLE DRIVE INTEGRATION ---
+    
+    function showModalMessage(message, type = 'info') {
+      const modalMessage = $('modalMessage');
+      let icon = '';
+      
+      if (type === 'success') {
+        icon = '<i class="fas fa-check-circle" style="color: var(--secondary); font-size: 48px; margin-bottom: 15px;"></i>';
+        modalMessage.className = 'my-4 text-center text-success';
+      } else if (type === 'error') {
+        icon = '<i class="fas fa-exclamation-circle" style="color: var(--danger); font-size: 48px; margin-bottom: 15px;"></i>';
+        modalMessage.className = 'my-4 text-center text-error';
+      } else if (type === 'warning') {
+        icon = '<i class="fas fa-exclamation-triangle" style="color: var(--warning); font-size: 48px; margin-bottom: 15px;"></i>';
+        modalMessage.className = 'my-4 text-center text-warning';
+      } else {
+        icon = '<div class="spinner"></div>';
+        modalMessage.className = 'my-4 text-center text-muted';
+      }
+      
+      modalMessage.innerHTML = `${icon}<div style="margin-top: 15px;">${message}</div>`;
+    }
+
+    function openModal() {
+      if (driveTimeout) {
+        clearTimeout(driveTimeout);
+        driveTimeout = null;
+      }
+
+      $('driveControls').classList.add('hidden');
+      $('btnAuthorizeDrive').classList.add('hidden');
+      $('btnUploadDrive').classList.add('hidden');
+      $('btnDownloadDrive').classList.add('hidden');
+
+      $('cloudModal').classList.add('show');
+      showModalMessage('Inicializando servicios de Google...');
+      
+      if (CLIENT_ID === 'TU_CLIENT_ID_DE_GOOGLE_AQUI') {
+          showModalMessage('ERROR: Por favor, reemplaza "TU_CLIENT_ID_DE_GOOGLE_AQUI" con tu CLIENT ID real.', 'error');
+          return;
+      }
+
+      const initInterval = setInterval(() => {
+          if (typeof gapi !== 'undefined' && typeof google !== 'undefined' && !googleServicesReady) {
+              clearInterval(initInterval);
+              initializeGoogleServices();
+          } else if (googleServicesReady) {
+              clearInterval(initInterval);
+              checkDriveAuthStatus();
+          }
+      }, 300);
+    }
+    
+    function closeModal() {
+      if (driveTimeout) {
+        clearTimeout(driveTimeout);
+        driveTimeout = null;
+      }
+      driveUploadInProgress = false;
+      $('cloudModal').classList.remove('show'); 
+    }
+
+    function initializeGoogleServices() {
+        if (googleServicesReady) return;
+
+        gapi.load('client', () => {
+            gapi.client.init({
+                discoveryDocs: DISCOVERY_DOCS,
+            }).then(() => {
+                gapiInitialized = true;
+                initializeGoogleIdentityServices();
+            }, (error) => {
+                showModalMessage('Error al inicializar la API de Google Drive. Revisa tu CLIENT ID y la consola.', 'error');
+                console.error('GAPI Client Init Error:', error);
+            });
+        });
+    }
+
+    function initializeGoogleIdentityServices() {
+        if (gisReady || typeof google === 'undefined') return;
+
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    gapi.client.setToken({ access_token: tokenResponse.access_token });
+                    if ($('cloudModal').classList.contains('show')) {
+                        checkDriveAuthStatus(true);
+                    }
+                }
+            },
+        });
+        gisReady = true;
+        googleServicesReady = true;
+        checkDriveAuthStatus();
+    }
+
+    function handleAuthClick() {
+      if (!tokenClient) {
+        showModalMessage('Error: Servicios de Google no inicializados correctamente.', 'error');
+        return;
+      }
+      tokenClient.requestAccessToken({prompt: 'consent'});
+    }
+
+    function checkDriveAuthStatus(isNewAuth = false) {
+        if (!googleServicesReady) {
+             showModalMessage('Esperando inicialización de servicios de Google...', 'warning');
+             return;
+        }
+
+        const token = gapi.client.getToken();
+        const isAuthenticated = token !== null && token?.access_token; 
+        
+        $('driveControls').classList.remove('hidden');
+
+        if (isAuthenticated) {
+            showModalMessage(isNewAuth 
+                ? '¡Autorización exitosa! Listo para subir y descargar.'
+                : 'Conectado a Google Drive.'
+            );
+            $('btnAuthorizeDrive').classList.add('hidden');
+            $('btnUploadDrive').classList.remove('hidden');
+            $('btnDownloadDrive').classList.remove('hidden');
+            $('btnUploadDrive').onclick = uploadToDrive;
+            $('btnDownloadDrive').onclick = downloadFromDrive;
+        } else {
+            showModalMessage('Necesitas autorizar la aplicación para acceder a Google Drive.');
+            $('btnAuthorizeDrive').classList.remove('hidden');
+            $('btnUploadDrive').classList.add('hidden');
+            $('btnDownloadDrive').classList.add('hidden');
+            $('btnAuthorizeDrive').onclick = handleAuthClick;
+            
+            if ($('cloudModal').classList.contains('show')) {
+                handleAuthClick();
+            }
+        }
+    }
+
+    async function ensureDriveFileExists() {
+        if (driveFileId) return driveFileId;
+
+        showModalMessage('Buscando archivo en Google Drive...', 'info');
+
+        try {
+            const response = await gapi.client.drive.files.list({
+                q: `name = '${DRIVE_FILE_NAME}' and trashed = false`,
+                spaces: 'drive',
+                fields: 'files(id)',
+            });
+
+            if (response.result.files.length > 0) {
+                driveFileId = response.result.files[0].id;
+                showModalMessage(`Archivo encontrado.`, 'info');
+                return driveFileId;
+            } else {
+                showModalMessage('Archivo no encontrado. Se creará uno nuevo al subir.', 'warning');
+                return null;
+            }
+        } catch (error) {
+            showModalMessage('Error al buscar el archivo en Drive. Revisa la consola.', 'error');
+            return null;
+        }
+    }
+
+    async function uploadToDrive() {
+        if (!gapi.client.getToken()?.access_token) {
+            showModalMessage('Por favor, autoriza primero la conexión con Google Drive.', 'warning');
+            handleAuthClick();
+            return;
+        }
+        
+        driveUploadInProgress = true;
+        showModalMessage('Preparando datos para subir...', 'info');
+
+        const fileId = await ensureDriveFileExists();
+        const dataToUpload = JSON.stringify(state, null, 2);
+        const metadata = {
+            'name': DRIVE_FILE_NAME,
+            'mimeType': 'application/json',
+        };
+
+        const boundary = 'foo_bar_baz';
+        const delimiter = "\r\n--" + boundary + "\r\n";
+        const close_delimiter = "\r\n--" + boundary + "--";
+
+        const multipartRequestBody =
+            delimiter +
+            'Content-Type: application/json\r\n\r\n' +
+            JSON.stringify(metadata) +
+            delimiter +
+            'Content-Type: application/json\r\n\r\n' +
+            dataToUpload +
+            close_delimiter;
+
+        const request = gapi.client.request({
+            'path': '/upload/drive/v3/files/' + (fileId ? fileId : ''),
+            'method': fileId ? 'PATCH' : 'POST',
+            'params': {
+                'uploadType': 'multipart',
+                'fileId': fileId,
+                'addParents': fileId ? undefined : 'root',
+            },
+            'headers': {
+                'Content-Type': 'multipart/mixed; boundary="' + boundary + '"',
+                'Authorization': 'Bearer ' + gapi.client.getToken().access_token,
+            },
+            'body': multipartRequestBody
+        });
+
+        try {
+            const response = await request;
+            driveFileId = response.result.id;
+            showModalMessage('¡Datos subidos y guardados en Google Drive con éxito!', 'success');
+            driveUploadInProgress = false;
+            
+            driveTimeout = setTimeout(closeModal, 2000);
+        } catch (error) {
+            showModalMessage('Error al subir el archivo a Drive. Revisa la consola.', 'error');
+            console.error('Drive Upload Error:', error);
+            driveUploadInProgress = false;
+        }
+    }
+
+    async function downloadFromDrive() {
+        if (!gapi.client.getToken()?.access_token) {
+            showModalMessage('Por favor, autoriza primero la conexión con Google Drive.', 'warning');
+            handleAuthClick();
+            return;
+        }
+        
+        const fileId = await ensureDriveFileExists();
+        if (!fileId) {
+            showModalMessage('No se encontró ningún archivo de Caja Diaria en Drive para descargar.', 'warning');
+            return;
+        }
+        
+        if (!confirm('¿Seguro que quieres descargar los datos de Drive? ¡Esto SOBRESCRIBIRÁ todos tus datos locales!')) {
+            return;
+        }
+
+        showModalMessage('Descargando datos de Google Drive...', 'info');
+
+        try {
+            const response = await gapi.client.drive.files.get({
+                fileId: fileId,
+                alt: 'media'
+            });
+
+            const downloadedData = response.result;
+            
+            if (downloadedData && Array.isArray(downloadedData.registros)) {
+                Object.assign(state, downloadedData);
+                saveLocal();
+                render();
+                showModalMessage('¡Datos descargados de Google Drive y cargados localmente con éxito!', 'success');
+                
+                driveTimeout = setTimeout(closeModal, 2000);
+            } else {
+                showModalMessage('El archivo descargado no parece ser un backup de Caja Diaria válido.', 'error');
+            }
+
+        } catch (error) {
+            showModalMessage('Error al descargar el archivo de Drive. Revisa la consola.', 'error');
+        }
+    }
+    
+    // --- FILTROS Y OTROS ---
+    const filterHistorico = () => {
+      const dia = $('filterDia').value;
+      const mes = $('filterMes').value;
+      const anio = $('filterAnio').value;
+      return state.historicoCompleto.filter(r => {
+        if (!r.fecha) return false;
+        const [y, m, d] = r.fecha.split('-');
+        return (!dia || r.fecha === dia) && (!mes || m === mes) && (!anio || y === anio);
+      });
+    };
+
+    function clearFilters() {
+      $('filterDia').value = '';
+      $('filterMes').value = '';
+      $('filterAnio').value = '';
+      renderTablaCompleto();
+    }
+
+    function clearTable() {
+      if (confirm('¿Estás seguro de que quieres borrar todos los registros diarios?')) {
+        state.registros = [];
+        renderTabla();
+        saveLocal();
+      }
+    }
+
+    function clearFees() {
+      if (confirm('¿Estás seguro de que quieres borrar todos los fees de plataformas?')) {
+        state.feesPlataformas = [];
+        renderTablaFees();
+        saveLocal();
+      }
+    }
+
+    function showAutoSaveIndicator() {
+      const indicator = $('autoSaveIndicator');
+      indicator.classList.add('show');
+      setTimeout(() => indicator.classList.remove('show'), 3000);
+    }
+
+    // --- INICIALIZACIÓN ---
+    function render() {
+      renderKPIs();
+      renderTabla();
+      renderTablaFees();
+      renderTablaCompleto();
+    }
+
+    function init() {
+      loadLocal();
+      render();
+      
+      // Event listeners
+      $('btnGuardar').addEventListener('click', guardarCierreDiario);
+      $('btnExport').addEventListener('click', exportJSON);
+      $('btnImport').addEventListener('click', importJSON);
+      $('btnSaveCloud').addEventListener('click', openModal);
+      $('fileInput').addEventListener('change', handleFileSelect);
+      $('btnClear').addEventListener('click', clearTable);
+      $('btnClearFees').addEventListener('click', clearFees);
+      $('filterDia').addEventListener('change', renderTablaCompleto);
+      $('filterMes').addEventListener('change', renderTablaCompleto);
+      $('filterAnio').addEventListener('change', renderTablaCompleto);
+      $('btnClearFilters').addEventListener('click', clearFilters);
+    }
+
+    // Iniciar la aplicación
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
